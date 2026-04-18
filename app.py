@@ -953,44 +953,50 @@ with t_api:
     api_region   = st.selectbox("Region (for data endpoints)", get_regions(), key="api_region")
     api_univ     = st.selectbox("Universe (for data endpoints)", get_universes(region=api_region), key="api_univ")
 
-    if st.button("▶ Execute Request", key="exec_api"):
-        with st.spinner("Calling BRAIN API…"):
-            ep = endpoint.split(" ")[1]  # get path part
-            if "OPTIONS" in endpoint:
-                r = brain_options("/simulations")
-            elif "<id>/recordsets/<name>" in endpoint:
-                r = brain_get(f"/alphas/{api_alpha_id}/recordsets/{api_rs_name}")
-            elif "<id>/recordsets" in endpoint:
-                r = brain_get(f"/alphas/{api_alpha_id}/recordsets")
-            elif "<id>/check" in endpoint:
-                r = brain_get(f"/alphas/{api_alpha_id}/check")
-            elif "correlations/self" in endpoint:
-                r = brain_get(f"/alphas/{api_alpha_id}/correlations/self")
-            elif "correlations/prod" in endpoint:
-                r = brain_get(f"/alphas/{api_alpha_id}/correlations/prod")
-            elif "<id>" in endpoint:
-                r = brain_get(f"/alphas/{api_alpha_id}")
-            elif "data-sets" in endpoint:
-                r = brain_get("/data-sets", {"instrumentType":"EQUITY","region":api_region,"universe":api_univ,"delay":1})
-            elif "data-fields" in endpoint:
-                r = brain_get("/data-fields", {"instrumentType":"EQUITY","region":api_region,"universe":api_univ,"delay":1,"limit":50})
-            elif "operators" in endpoint:
-                r = brain_get("/operators")
-            elif "authentication" in endpoint:
-                r = brain_get("/authentication")
-            elif "diversity" in endpoint:
-                r = brain_get("/users/self/activities/diversity", {"grouping":"region,delay,dataCategory"})
-            else:
-                st.error("Unknown endpoint.")
-                r = None
+    if st.button("Connect to BRAIN", use_container_width=True):
+    if not email or not password:
+        st.error("Enter email and password first.")
+    else:
+        with st.spinner("Connecting to BRAIN…"):
+            try:
+                s = requests.Session()
+                s.auth = (email, password)
+                r = s.post(
+                    BRAIN_URL + "/authentication",
+                    timeout=20,
+                )
+                st.write(f"DEBUG — status: {r.status_code}")
+                st.write(f"DEBUG — body: {r.text[:300]}")
 
-            if r is not None:
-                st.markdown(f"**Status:** {r.status_code}")
-                try:
-                    st.json(r.json())
-                except Exception:
-                    st.code(r.text)
+                if r.status_code == 201:
+                    st.session_state["session"] = s
+                    st.session_state["authenticated"] = True
+                    st.success("✓ Connected!")
+                    with st.spinner("Loading simulation options…"):
+                        load_sim_options()
+                    st.rerun()
 
+                elif r.status_code == 401:
+                    hdr = r.headers.get("WWW-Authenticate", "")
+                    if hdr == "persona":
+                        biometric_url = urljoin(r.url, r.headers["Location"])
+                        st.warning(
+                            f"Biometric auth required on your account.\n\n"
+                            f"[Tap here to complete it]({biometric_url})\n\n"
+                            f"Then tap Connect again."
+                        )
+                        st.session_state["session"] = s
+                    else:
+                        st.error(f"Wrong email or password. ({r.text[:200]})")
+                else:
+                    st.error(f"Unexpected response: {r.status_code} — {r.text[:200]}")
+
+            except requests.exceptions.Timeout:
+                st.error("Connection timed out. BRAIN API may be unreachable from Streamlit Cloud.")
+            except requests.exceptions.ConnectionError as e:
+                st.error(f"Cannot reach BRAIN API: {e}")
+            except Exception as e:
+                st.error(f"Unexpected error: {type(e).__name__}: {e}")
     st.markdown("---")
     st.markdown("##### Python Script Generator")
     sc_expr   = st.text_input("Expression for script", "-group_rank(ebit / capex, subindustry)")
