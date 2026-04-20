@@ -1,0 +1,1707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WQαLab — BRAIN Alpha AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════
+   DESIGN SYSTEM
+═══════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#070b0f;--bg1:#0c1118;--bg2:#111820;--bg3:#171f2a;--bg4:#1c2530;
+  --border:#1c2b3a;--b2:#243344;
+  --cyan:#00e5ff;--amber:#ffb300;--green:#00e676;--red:#ff1744;--purple:#c44dff;
+  --txt:#cdd6e0;--txt2:#5a7590;--txt3:#2a3f55;
+  --mono:'JetBrains Mono',monospace;--sans:'Syne',sans-serif;
+  --r:6px;--r2:10px;
+}
+html,body{height:100%;background:var(--bg);color:var(--txt);font-family:var(--mono);font-size:13px;line-height:1.6;overflow:hidden}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg1)}
+::-webkit-scrollbar-thumb{background:var(--b2);border-radius:3px}
+
+/* ── LAYOUT ── */
+#app{display:flex;flex-direction:column;height:100vh}
+
+/* ── HEADER ── */
+header{
+  display:flex;align-items:center;gap:12px;
+  padding:11px 20px;
+  background:var(--bg1);border-bottom:1px solid var(--border);
+  flex-shrink:0;position:relative;z-index:10;
+}
+header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,var(--cyan),transparent 50%);opacity:.3}
+.logo{font-family:var(--sans);font-size:19px;font-weight:800;color:var(--cyan);letter-spacing:-1px}
+.logo em{color:var(--amber);font-style:normal}
+.logo-tag{font-size:10px;color:var(--txt2);letter-spacing:1.5px;text-transform:uppercase;margin-left:2px}
+.hdr-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+#conn-badge{
+  display:flex;align-items:center;gap:6px;
+  font-size:10px;padding:4px 10px;border-radius:20px;letter-spacing:.5px;
+  border:1px solid var(--b2);color:var(--txt2);cursor:pointer;
+  transition:all .2s;
+}
+#conn-badge.on{border-color:rgba(0,230,118,.35);color:var(--green)}
+#conn-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--txt3)}
+#conn-badge.on .dot{background:var(--green);box-shadow:0 0 6px var(--green);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ── NAV ── */
+nav{
+  display:flex;background:var(--bg1);border-bottom:1px solid var(--border);
+  flex-shrink:0;overflow-x:auto;
+}
+.nav-btn{
+  padding:10px 18px;font-family:var(--mono);font-size:11px;letter-spacing:.5px;
+  color:var(--txt2);background:transparent;border:none;cursor:pointer;
+  border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s;
+}
+.nav-btn:hover{color:var(--txt)}
+.nav-btn.on{color:var(--cyan);border-bottom-color:var(--cyan)}
+
+/* ── BODY ── */
+.body{display:flex;flex:1;overflow:hidden}
+
+/* ── SIDEBAR ── */
+aside{
+  width:270px;flex-shrink:0;
+  background:var(--bg1);border-right:1px solid var(--border);
+  overflow-y:auto;padding:18px 14px;
+  display:flex;flex-direction:column;gap:16px;
+}
+@media(max-width:680px){
+  .body{flex-direction:column}
+  aside{width:100%;border-right:none;border-bottom:1px solid var(--border);padding:14px}
+  aside .sb-section{display:none}
+  aside .sb-section.auth{display:flex}
+}
+
+/* ── PANELS ── */
+main{flex:1;overflow-y:auto;padding:20px}
+.panel{display:none}
+.panel.on{display:block}
+
+/* ── SECTION TITLE ── */
+.stitle{
+  font-family:var(--sans);font-size:14px;font-weight:700;
+  color:var(--txt);margin-bottom:12px;
+  display:flex;align-items:center;gap:8px;
+}
+.stitle::before{content:'';display:block;width:3px;height:16px;border-radius:2px;
+  background:var(--cyan);box-shadow:0 0 8px rgba(0,229,255,.4)}
+
+/* ── CARDS ── */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:16px;margin-bottom:14px}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.card.glow{border-color:rgba(0,229,255,.2);box-shadow:0 0 20px rgba(0,229,255,.05)}
+.card.result-good{border-color:rgba(0,230,118,.2);box-shadow:0 0 16px rgba(0,230,118,.05)}
+.card.result-bad{border-color:rgba(255,23,68,.15)}
+
+/* ── FORM ── */
+.field{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
+.lbl{font-size:10px;color:var(--txt2);text-transform:uppercase;letter-spacing:1px}
+input,select,textarea{
+  background:var(--bg3);border:1px solid var(--border);
+  color:var(--txt);font-family:var(--mono);font-size:12px;
+  padding:8px 10px;border-radius:var(--r);outline:none;width:100%;
+  transition:border .15s;
+}
+input:focus,select:focus,textarea:focus{border-color:var(--cyan)}
+input[type=password]{letter-spacing:2px}
+textarea{resize:vertical;min-height:80px}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row .field{flex:1;min-width:120px}
+
+/* ── BUTTONS ── */
+.btn{
+  padding:9px 20px;border-radius:var(--r);font-family:var(--mono);
+  font-size:12px;font-weight:600;cursor:pointer;border:none;
+  transition:all .15s;letter-spacing:.3px;
+}
+.btn-cyan{background:var(--cyan);color:#000}
+.btn-cyan:hover{background:#33eeff;box-shadow:0 0 20px rgba(0,229,255,.3)}
+.btn-amber{background:var(--amber);color:#000}
+.btn-amber:hover{background:#ffc233}
+.btn-green{background:var(--green);color:#000}
+.btn-green:hover{background:#33eb91}
+.btn-ghost{background:transparent;border:1px solid var(--b2);color:var(--txt2)}
+.btn-ghost:hover{border-color:var(--txt2);color:var(--txt)}
+.btn-purple{background:var(--purple);color:#fff}
+.btn-purple:hover{background:#d966ff}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+
+/* ── METRICS ── */
+.metrics{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.metric{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--r);padding:12px 14px;flex:1;min-width:95px;
+}
+.metric-lbl{font-size:10px;color:var(--txt2);text-transform:uppercase;letter-spacing:.8px}
+.metric-val{font-family:var(--sans);font-size:22px;font-weight:800;color:var(--cyan);margin:2px 0}
+.metric-val.g{color:var(--green)}.metric-val.a{color:var(--amber)}.metric-val.r{color:var(--red)}
+.metric-hint{font-size:10px;color:var(--txt3)}
+
+/* ── PROGRESS ── */
+.prog-wrap{margin:10px 0}
+.prog-lbl{font-size:11px;color:var(--cyan);margin-bottom:5px}
+.prog-track{height:3px;background:var(--bg3);border-radius:2px;overflow:hidden}
+.prog-bar{height:100%;background:linear-gradient(90deg,var(--cyan),var(--purple));border-radius:2px;transition:width .4s}
+.prog-bar.run{animation:shimmer 1.5s infinite}
+@keyframes shimmer{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* ── TABLES ── */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--r);margin-bottom:14px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;padding:8px 12px;font-size:10px;color:var(--txt2);
+   text-transform:uppercase;letter-spacing:.8px;border-bottom:1px solid var(--border);
+   background:var(--bg3);white-space:nowrap}
+td{padding:8px 12px;border-bottom:1px solid var(--bg3);color:var(--txt)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg2)}
+.pass{color:var(--green);font-weight:600}
+.fail{color:var(--red);font-weight:600}
+.warn{color:var(--amber);font-weight:600}
+
+/* ── CODE DISPLAY ── */
+.code-expr{
+  background:var(--bg);border:1px solid var(--b2);border-radius:var(--r);
+  padding:12px 14px;font-family:var(--mono);font-size:12px;
+  color:var(--cyan);letter-spacing:.3px;word-break:break-all;
+  cursor:pointer;transition:border .15s;
+}
+.code-expr:hover{border-color:var(--cyan)}
+
+/* ── SCORE BAR ── */
+.score-wrap{margin:12px 0}
+.score-top{display:flex;justify-content:space-between;font-size:10px;color:var(--txt2);margin-bottom:4px}
+.score-track{height:8px;background:var(--bg3);border-radius:4px;overflow:hidden}
+.score-fill{height:100%;border-radius:4px;transition:width .6s ease}
+
+/* ── TAGS ── */
+.tag{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600;letter-spacing:.5px}
+.tag-c{background:rgba(0,229,255,.1);color:var(--cyan);border:1px solid rgba(0,229,255,.2)}
+.tag-a{background:rgba(255,179,0,.1);color:var(--amber);border:1px solid rgba(255,179,0,.2)}
+.tag-g{background:rgba(0,230,118,.1);color:var(--green);border:1px solid rgba(0,230,118,.2)}
+.tag-r{background:rgba(255,23,68,.1);color:var(--red);border:1px solid rgba(255,23,68,.2)}
+.tag-p{background:rgba(196,77,255,.1);color:var(--purple);border:1px solid rgba(196,77,255,.2)}
+
+/* ── TOAST ── */
+#toast{
+  position:fixed;bottom:20px;right:20px;z-index:999;
+  background:var(--bg2);border:1px solid var(--b2);
+  color:var(--txt);padding:10px 16px;border-radius:var(--r);
+  font-size:12px;max-width:320px;
+  transform:translateY(10px);opacity:0;transition:all .2s;pointer-events:none;
+}
+#toast.show{transform:translateY(0);opacity:1}
+
+/* ── AI THINKING ── */
+.ai-thinking{
+  display:flex;align-items:center;gap:10px;
+  padding:14px;background:rgba(196,77,255,.05);
+  border:1px solid rgba(196,77,255,.15);border-radius:var(--r2);
+  font-size:11px;color:var(--purple);margin-bottom:14px;
+}
+.ai-dots span{
+  display:inline-block;width:4px;height:4px;border-radius:50%;
+  background:var(--purple);margin:0 2px;
+  animation:dot 1.4s infinite ease-in-out;
+}
+.ai-dots span:nth-child(2){animation-delay:.2s}
+.ai-dots span:nth-child(3){animation-delay:.4s}
+@keyframes dot{0%,80%,100%{transform:scale(.8);opacity:.4}40%{transform:scale(1);opacity:1}}
+
+/* ── CHAT / AI OUTPUT ── */
+.ai-msg{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--r2);padding:16px;margin-bottom:12px;
+  animation:fadeIn .3s ease;
+}
+.ai-msg-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:10px;color:var(--purple);letter-spacing:1px}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── PNL SVG CHART ── */
+.pnl-chart{
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:var(--r);overflow:hidden;
+}
+.pnl-chart svg{display:block;width:100%;height:160px}
+
+/* ── HISTORY ITEM ── */
+.hist-item{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--r);padding:12px 14px;margin-bottom:8px;
+  cursor:pointer;transition:border .15s;
+}
+.hist-item:hover{border-color:var(--b2)}
+.hist-item.good{border-left:3px solid var(--green)}
+.hist-item.bad{border-left:3px solid var(--red)}
+.hist-item.warn-item{border-left:3px solid var(--amber)}
+
+/* ── DIVIDER ── */
+.divider{height:1px;background:var(--border);margin:16px 0}
+
+/* ── SCROLLABLE INNER ── */
+.inner-scroll{max-height:400px;overflow-y:auto;padding-right:4px}
+
+/* ── KNOWLEDGE BASE ── */
+.kb-block{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--r);margin-bottom:8px;overflow:hidden;
+}
+.kb-header{
+  padding:12px 14px;cursor:pointer;display:flex;
+  justify-content:space-between;align-items:center;
+  font-size:12px;font-weight:500;color:var(--txt);
+  transition:background .15s;
+}
+.kb-header:hover{background:var(--bg3)}
+.kb-body{display:none;padding:12px 14px;border-top:1px solid var(--border);font-size:12px;color:var(--txt2);line-height:1.9}
+.kb-body.open{display:block}
+.kb-body code{color:var(--cyan);background:var(--bg3);padding:1px 5px;border-radius:3px;font-size:11px}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ═══════════ HEADER ═══════════ -->
+<header>
+  <div>
+    <div class="logo">WQ<em>α</em>Lab</div>
+    <div class="logo-tag">BRAIN Alpha AI Research</div>
+  </div>
+  <div class="hdr-right">
+    <div id="conn-badge" onclick="showAuth()" title="Click to manage connection">
+      <div class="dot"></div>
+      <span id="conn-text">Not connected</span>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════ NAV ═══════════ -->
+<nav>
+  <button class="nav-btn on" onclick="switchTab('ai')">✦ AI Research</button>
+  <button class="nav-btn" onclick="switchTab('simulate')">⚗ Simulate</button>
+  <button class="nav-btn" onclick="switchTab('results')">📊 Results</button>
+  <button class="nav-btn" onclick="switchTab('history')">📁 History</button>
+  <button class="nav-btn" onclick="switchTab('learn')">◎ Learn</button>
+</nav>
+
+<!-- ═══════════ BODY ═══════════ -->
+<div class="body">
+
+<!-- ─── SIDEBAR ─── -->
+<aside>
+  <!-- AUTH -->
+  <div class="sb-section auth">
+    <div class="stitle">🔐 BRAIN Login</div>
+    <div class="field"><div class="lbl">Email</div><input type="email" id="sb-email" placeholder="you@example.com"></div>
+    <div class="field"><div class="lbl">Password</div><input type="password" id="sb-pass" placeholder="••••••••"></div>
+    <button class="btn btn-cyan" style="width:100%" onclick="doLogin()">Connect to BRAIN</button>
+    <div id="auth-status" style="font-size:11px;margin-top:8px;color:var(--txt2)"></div>
+  </div>
+
+  <!-- QUICK THRESHOLDS -->
+  <div class="sb-section">
+    <div class="stitle">📐 Thresholds</div>
+    <div style="font-size:11px;color:var(--txt2);line-height:2">
+      <div>Sharpe <span style="color:var(--cyan);float:right">≥ 1.25</span></div>
+      <div>Fitness <span style="color:var(--cyan);float:right">≥ 1.0</span></div>
+      <div>Turnover <span style="color:var(--cyan);float:right">1–70%</span></div>
+      <div>Drawdown <span style="color:var(--cyan);float:right">&gt; −20%</span></div>
+      <div>Self-corr <span style="color:var(--cyan);float:right">&lt; 0.7</span></div>
+      <div>Prod-corr <span style="color:var(--cyan);float:right">&lt; 0.7</span></div>
+    </div>
+  </div>
+
+  <!-- ALPHA STATS SUMMARY -->
+  <div class="sb-section" id="sb-stats-block" style="display:none">
+    <div class="stitle">🧠 Session Stats</div>
+    <div style="font-size:11px;color:var(--txt2);line-height:2">
+      <div>Simulated <span id="sb-total" style="color:var(--cyan);float:right">0</span></div>
+      <div>Passed <span id="sb-passed" style="color:var(--green);float:right">0</span></div>
+      <div>Best Sharpe <span id="sb-best" style="color:var(--amber);float:right">—</span></div>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="sb-section">
+    <div class="stitle">⚙ Default Settings</div>
+    <div class="field"><div class="lbl">Region</div>
+      <select id="cfg-region"><option>USA</option><option>EUR</option><option>ASI</option><option>CHN</option><option>JPN</option><option>KOR</option><option>TWN</option><option>IND</option><option>BRA</option></select>
+    </div>
+    <div class="field"><div class="lbl">Universe</div>
+      <select id="cfg-universe"><option>TOP3000</option><option>TOP2000</option><option>TOP1000</option><option>TOP500</option></select>
+    </div>
+    <div class="field"><div class="lbl">Neutralization</div>
+      <select id="cfg-neut" id="cfg-neut"><option>SUBINDUSTRY</option><option>INDUSTRY</option><option>SECTOR</option><option>MARKET</option></select>
+    </div>
+    <div class="row">
+      <div class="field"><div class="lbl">Delay</div><select id="cfg-delay"><option value="1">1</option><option value="0">0</option></select></div>
+      <div class="field"><div class="lbl">Decay</div><input type="number" id="cfg-decay" value="0" min="0" max="20"></div>
+    </div>
+    <div class="row">
+      <div class="field"><div class="lbl">Truncation</div><input type="number" id="cfg-trunc" value="0.08" min="0.01" max="0.2" step="0.01"></div>
+      <div class="field"><div class="lbl">Test Period</div>
+        <select id="cfg-period"><option value="P4Y">4Y</option><option value="P2Y">2Y</option><option value="P1Y">1Y</option><option value="P5Y">5Y</option></select>
+      </div>
+    </div>
+    <button class="btn btn-ghost" style="width:100%;margin-top:4px" onclick="loadLiveSettings()">↺ Load from BRAIN</button>
+  </div>
+</aside>
+
+<!-- ─── MAIN PANELS ─── -->
+<main>
+
+<!-- ════════════════════════
+  TAB 1 — AI RESEARCH
+═════════════════════════ -->
+<div id="tab-ai" class="panel on">
+  <div class="stitle">✦ AI Alpha Research Assistant</div>
+  <p style="color:var(--txt2);font-size:12px;margin-bottom:18px">
+    Describe the kind of alpha you want. The AI will generate FASTEXPR ideas, explain the logic,
+    and you can send them directly to BRAIN for simulation. The AI learns from your simulation history.
+  </p>
+
+  <!-- PROMPT -->
+  <div class="card glow">
+    <div class="lbl" style="margin-bottom:8px">What kind of alpha are you looking for?</div>
+    <textarea id="ai-prompt" rows="3" placeholder="e.g. Generate a fundamental alpha using profitability ratios for USA TOP3000 that avoids high turnover...&#10;e.g. Improve my last alpha — it had good Sharpe but high turnover&#10;e.g. Give me 3 variations of a volume reversion alpha"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-purple" onclick="generateAIAlpha()">✦ Generate Alpha Ideas</button>
+      <button class="btn btn-ghost" onclick="generateFromHistory()">🔁 Improve Last Alpha</button>
+      <button class="btn btn-ghost" onclick="generateBatch()">⚡ Generate Batch (5)</button>
+    </div>
+  </div>
+
+  <!-- CATEGORY SHORTCUTS -->
+  <div style="margin-bottom:16px">
+    <div class="lbl" style="margin-bottom:8px">Quick category prompts</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <span class="tag tag-c" style="cursor:pointer" onclick="quickPrompt('price reversion')">Price Reversion</span>
+      <span class="tag tag-a" style="cursor:pointer" onclick="quickPrompt('price momentum')">Price Momentum</span>
+      <span class="tag tag-g" style="cursor:pointer" onclick="quickPrompt('fundamental quality')">Fundamental</span>
+      <span class="tag tag-p" style="cursor:pointer" onclick="quickPrompt('volume-based')">Volume</span>
+      <span class="tag tag-c" style="cursor:pointer" onclick="quickPrompt('sentiment contrarian')">Sentiment</span>
+      <span class="tag tag-a" style="cursor:pointer" onclick="quickPrompt('analyst estimate revision')">Analyst</span>
+      <span class="tag tag-g" style="cursor:pointer" onclick="quickPrompt('earnings quality and balance sheet strength')">Earnings Quality</span>
+      <span class="tag tag-r" style="cursor:pointer" onclick="quickPrompt('short interest squeeze')">Short Squeeze</span>
+    </div>
+  </div>
+
+  <!-- AI OUTPUT -->
+  <div id="ai-output"></div>
+</div>
+
+<!-- ════════════════════════
+  TAB 2 — SIMULATE
+═════════════════════════ -->
+<div id="tab-simulate" class="panel">
+  <div class="stitle">⚗ Alpha Simulator</div>
+  <p style="color:var(--txt2);font-size:12px;margin-bottom:16px">
+    Submit an alpha expression to WorldQuant BRAIN. Results are fetched automatically including checks, PnL, and yearly stats.
+  </p>
+
+  <div class="card">
+    <div class="field">
+      <div class="lbl">Alpha Expression (FASTEXPR)</div>
+      <textarea id="sim-expr" rows="3" placeholder="-group_rank(ebit / capex, subindustry)"></textarea>
+    </div>
+    <div class="field">
+      <div class="lbl">Description (for submission)</div>
+      <textarea id="sim-desc" rows="3" placeholder="Idea: ...&#10;Rationale for data used: ...&#10;Rationale for operators used: ..."></textarea>
+      <div style="font-size:10px;color:var(--txt3);margin-top:4px">
+        ⚡ Switch to AI Research tab to auto-generate this description
+      </div>
+    </div>
+
+    <!-- Settings override -->
+    <details style="margin-bottom:12px">
+      <summary style="cursor:pointer;font-size:11px;color:var(--txt2);padding:6px 0">▸ Override Settings</summary>
+      <div class="row" style="margin-top:10px">
+        <div class="field"><div class="lbl">Region</div><select id="ov-region"><option>USA</option><option>EUR</option><option>ASI</option><option>CHN</option><option>JPN</option><option>KOR</option><option>TWN</option></select></div>
+        <div class="field"><div class="lbl">Universe</div><select id="ov-univ"><option>TOP3000</option><option>TOP2000</option><option>TOP1000</option></select></div>
+        <div class="field"><div class="lbl">Neutralization</div><select id="ov-neut"><option>SUBINDUSTRY</option><option>INDUSTRY</option><option>SECTOR</option><option>MARKET</option></select></div>
+      </div>
+      <div class="row">
+        <div class="field"><div class="lbl">Delay</div><select id="ov-delay"><option value="1">1</option><option value="0">0</option></select></div>
+        <div class="field"><div class="lbl">Decay</div><input type="number" id="ov-decay" value="0" min="0" max="20"></div>
+        <div class="field"><div class="lbl">Truncation</div><input type="number" id="ov-trunc" value="0.08" step="0.01" min="0.01" max="0.2"></div>
+      </div>
+    </details>
+
+    <div id="sim-progress" style="display:none">
+      <div class="prog-wrap">
+        <div class="prog-lbl" id="sim-prog-lbl">Submitting…</div>
+        <div class="prog-track"><div class="prog-bar run" id="sim-prog-bar" style="width:5%"></div></div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-cyan" id="sim-btn" onclick="runSimulation()">▶ Run Simulation</button>
+      <button class="btn btn-ghost" onclick="viewPayload()">{ } View Payload</button>
+    </div>
+  </div>
+
+  <!-- Payload view -->
+  <div id="payload-block" style="display:none">
+    <div class="card">
+      <div class="lbl" style="margin-bottom:8px">JSON Payload</div>
+      <pre id="payload-json" style="font-size:11px;color:var(--txt2);white-space:pre-wrap;word-break:break-all"></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════
+  TAB 3 — RESULTS
+═════════════════════════ -->
+<div id="tab-results" class="panel">
+  <div class="stitle">📊 Simulation Results</div>
+
+  <div class="row" style="margin-bottom:16px;align-items:center">
+    <input type="text" id="res-alpha-id" placeholder="Paste Alpha ID to load any result" style="flex:1">
+    <button class="btn btn-ghost" onclick="loadAlphaById()">Load</button>
+  </div>
+
+  <div id="results-empty" style="color:var(--txt2);font-size:12px">
+    Run a simulation first — results will appear here automatically.
+  </div>
+  <div id="results-content" style="display:none">
+
+    <!-- Headline metrics -->
+    <div class="metrics" id="res-metrics"></div>
+
+    <!-- Score -->
+    <div class="card" id="res-score-card"></div>
+
+    <!-- Checks -->
+    <div id="res-checks-wrap" style="display:none">
+      <div class="stitle" style="font-size:13px">Submission Checks</div>
+      <div class="tbl-wrap"><table id="res-checks-table"><thead><tr><th>Check</th><th>Value</th><th>Limit</th><th>Result</th></tr></thead><tbody></tbody></table></div>
+    </div>
+
+    <!-- PnL Chart -->
+    <div id="res-pnl-wrap" style="display:none;margin-bottom:14px">
+      <div class="stitle" style="font-size:13px">Cumulative PnL</div>
+      <div class="pnl-chart"><svg id="res-pnl-svg" viewBox="0 0 600 160" preserveAspectRatio="none"></svg></div>
+    </div>
+
+    <!-- Yearly stats -->
+    <div id="res-yearly-wrap" style="display:none">
+      <div class="stitle" style="font-size:13px">Yearly Performance</div>
+      <div class="tbl-wrap"><table id="res-yearly-table"><thead><tr><th>Year</th><th>Sharpe</th><th>Fitness</th><th>Turnover</th><th>Returns</th></tr></thead><tbody></tbody></table></div>
+    </div>
+
+    <!-- AI Diagnosis -->
+    <div id="res-diagnosis" style="display:none"></div>
+
+    <!-- Correlations -->
+    <div class="btn-row" style="margin-top:8px">
+      <button class="btn btn-ghost" onclick="fetchSelfCorr()">Fetch Self-Correlation</button>
+      <button class="btn btn-ghost" onclick="fetchProdCorr()">Fetch Prod-Correlation</button>
+      <button class="btn btn-ghost" onclick="fetchRecordSet()">More Record Sets</button>
+    </div>
+    <div id="res-corr-wrap" style="margin-top:12px"></div>
+
+  </div>
+</div>
+
+<!-- ════════════════════════
+  TAB 4 — HISTORY & LEARNING
+═════════════════════════ -->
+<div id="tab-history" class="panel">
+  <div class="stitle">📁 Alpha History & Learning</div>
+  <p style="color:var(--txt2);font-size:12px;margin-bottom:16px">
+    Every alpha you simulate is stored here. The AI reads this history to generate better ideas over time.
+  </p>
+
+  <div class="btn-row" style="margin-bottom:16px">
+    <button class="btn btn-purple" onclick="aiAnalyzeHistory()">✦ AI: Analyse My History</button>
+    <button class="btn btn-ghost" onclick="exportHistory()">↓ Export JSON</button>
+    <button class="btn btn-ghost btn-red" onclick="clearHistory()">✕ Clear</button>
+  </div>
+
+  <div id="hist-ai-output" style="margin-bottom:16px"></div>
+
+  <div id="hist-empty" style="color:var(--txt2);font-size:12px">No simulations yet in this session.</div>
+  <div id="hist-list"></div>
+</div>
+
+<!-- ════════════════════════
+  TAB 5 — LEARN
+═════════════════════════ -->
+<div id="tab-learn" class="panel">
+  <div class="stitle">◎ Knowledge Base</div>
+  <p style="color:var(--txt2);font-size:12px;margin-bottom:16px">
+    Everything you need to know to write, score, and submit great alphas.
+  </p>
+
+  <div id="kb-content"></div>
+
+  <div class="divider"></div>
+  <div class="stitle" style="font-size:13px">Ask the AI</div>
+  <div class="card">
+    <textarea id="learn-q" rows="2" placeholder="Ask anything: what is neutralization? why does my alpha have high turnover? what's the best way to use ts_zscore?"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-purple" onclick="askLearnAI()">✦ Ask</button>
+    </div>
+    <div id="learn-ai-out" style="margin-top:12px"></div>
+  </div>
+</div>
+
+</main>
+</div><!-- end body -->
+</div><!-- end app -->
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- AUTH MODAL -->
+<div id="auth-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:flex;align-items:center;justify-content:center">
+  <div style="background:var(--bg1);border:1px solid var(--b2);border-radius:var(--r2);padding:24px;width:340px;max-width:95vw">
+    <div style="font-family:var(--sans);font-size:15px;font-weight:700;margin-bottom:16px;color:var(--cyan)">Connect to BRAIN</div>
+    <div class="field"><div class="lbl">Email</div><input type="email" id="m-email" placeholder="you@example.com"></div>
+    <div class="field"><div class="lbl">Password</div><input type="password" id="m-pass" placeholder="••••••••"></div>
+    <div id="m-status" style="font-size:11px;color:var(--txt2);margin-bottom:10px;min-height:18px"></div>
+    <div class="btn-row">
+      <button class="btn btn-cyan" onclick="doLoginModal()">Connect</button>
+      <button class="btn btn-ghost" onclick="hideAuth()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════════
+   CONSTANTS & STATE
+══════════════════════════════════════════════════════════════════ */
+const BRAIN = 'https://api.worldquantbrain.com';
+const ANTHROPIC = 'https://api.anthropic.com/v1/messages';
+
+const state = {
+  authenticated: false,
+  sessionCookie: null,   // JWT stored in cookie by BRAIN
+  history: JSON.parse(localStorage.getItem('wqlab_history') || '[]'),
+  liveSettings: null,    // from OPTIONS /simulations
+  lastAlphaId: null,
+  lastResult: null,
+  sessionTotal: 0,
+  sessionPassed: 0,
+  sessionBestSharpe: 0,
+};
+
+/* ══════════════════════════════════════════════════════════════════
+   BRAIN API — all requests use credentials=include so the JWT
+   cookie set by BRAIN is automatically sent
+══════════════════════════════════════════════════════════════════ */
+
+async function brainFetch(path, opts = {}) {
+  const url = BRAIN + path;
+  const res = await fetch(url, {
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) },
+    ...opts,
+  });
+  return res;
+}
+
+async function brainGet(path, params = {}) {
+  const q = new URLSearchParams(params).toString();
+  return brainFetch(path + (q ? '?' + q : ''));
+}
+
+async function brainPost(path, body) {
+  return brainFetch(path, { method: 'POST', body: JSON.stringify(body) });
+}
+
+async function brainOptions(path) {
+  return brainFetch(path, { method: 'OPTIONS' });
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   AUTH — handles biometric (persona) flow
+══════════════════════════════════════════════════════════════════ */
+
+async function doLogin() {
+  const email = document.getElementById('sb-email').value.trim();
+  const pass  = document.getElementById('sb-pass').value;
+  await authenticate(email, pass, 'auth-status');
+}
+
+async function doLoginModal() {
+  const email = document.getElementById('m-email').value.trim();
+  const pass  = document.getElementById('m-pass').value;
+  await authenticate(email, pass, 'm-status');
+}
+
+async function authenticate(email, pass, statusId) {
+  const el = document.getElementById(statusId);
+  el.textContent = 'Connecting…';
+  el.style.color = 'var(--txt2)';
+
+  try {
+    const headers = { 'Authorization': 'Basic ' + btoa(email + ':' + pass) };
+    const r = await brainFetch('/authentication', { method: 'POST', headers });
+
+    if (r.status === 201) {
+      state.authenticated = true;
+      onAuthenticated();
+      el.textContent = '✓ Connected!';
+      el.style.color = 'var(--green)';
+      hideAuth();
+      toast('✓ Connected to WorldQuant BRAIN');
+      await loadLiveSettings();
+    } else if (r.status === 401) {
+      const body = await r.json();
+      // Biometric / Persona flow
+      if (body.inquiry) {
+        const bioUrl = `${BRAIN}/authentication/persona?inquiry=${body.inquiry}`;
+        el.innerHTML = `Biometric required. <a href="${bioUrl}" target="_blank" style="color:var(--cyan)">Tap to verify →</a><br><small style="color:var(--txt3)">Complete verification, then tap Connect again.</small>`;
+        // Store credentials to retry after biometric
+        state._pendingEmail = email;
+        state._pendingPass  = pass;
+        // Poll for completion
+        pollBiometric(email, pass, statusId, body.inquiry);
+      } else {
+        el.textContent = '✗ Incorrect email or password';
+        el.style.color = 'var(--red)';
+      }
+    } else {
+      el.textContent = `Unexpected: ${r.status}`;
+      el.style.color = 'var(--red)';
+    }
+  } catch (e) {
+    el.textContent = 'Connection error: ' + e.message;
+    el.style.color = 'var(--red)';
+  }
+}
+
+async function pollBiometric(email, pass, statusId, inquiry) {
+  // After user completes biometric in new tab, POST to confirm session
+  const el = document.getElementById(statusId);
+  const bioUrl = `${BRAIN}/authentication/persona?inquiry=${inquiry}`;
+  let attempts = 0;
+  const interval = setInterval(async () => {
+    attempts++;
+    try {
+      const headers = { 'Authorization': 'Basic ' + btoa(email + ':' + pass) };
+      const r = await brainFetch('/authentication/persona?inquiry=' + inquiry,
+        { method: 'POST', headers });
+      if (r.status === 201) {
+        clearInterval(interval);
+        state.authenticated = true;
+        onAuthenticated();
+        el.textContent = '✓ Biometric verified — connected!';
+        el.style.color = 'var(--green)';
+        hideAuth();
+        toast('✓ Connected via biometric auth');
+        await loadLiveSettings();
+      }
+    } catch {}
+    if (attempts > 60) { clearInterval(interval); } // 5 min timeout
+  }, 5000);
+}
+
+function onAuthenticated() {
+  const badge = document.getElementById('conn-badge');
+  badge.classList.add('on');
+  document.getElementById('conn-text').textContent = 'Connected';
+  document.getElementById('sb-stats-block').style.display = 'block';
+}
+
+function showAuth() { document.getElementById('auth-modal').style.display = 'flex'; }
+function hideAuth()  { document.getElementById('auth-modal').style.display = 'none'; }
+
+/* ══════════════════════════════════════════════════════════════════
+   LIVE SETTINGS — OPTIONS /simulations
+══════════════════════════════════════════════════════════════════ */
+
+async function loadLiveSettings() {
+  if (!state.authenticated) return;
+  try {
+    const r = await brainOptions('/simulations');
+    if (r.status !== 200) return;
+    const data = await r.json();
+    state.liveSettings = data;
+    // Parse neutralizations for current region
+    parseAndPopulateSettings(data);
+    toast('✓ Live settings loaded from BRAIN');
+  } catch (e) {
+    console.warn('Could not load OPTIONS:', e);
+  }
+}
+
+function parseAndPopulateSettings(data) {
+  try {
+    const children = data.actions.POST.settings.children;
+    const region = document.getElementById('cfg-region').value;
+    const neutChoices = children.neutralization?.choices?.instrumentType?.EQUITY?.region?.[region] || [];
+    const neutSel = document.getElementById('cfg-neut');
+    if (neutChoices.length) {
+      neutSel.innerHTML = neutChoices.map(c => `<option>${c.value}</option>`).join('');
+    }
+    // Same for override panel
+    const ovNeut = document.getElementById('ov-neut');
+    if (neutChoices.length) {
+      ovNeut.innerHTML = neutChoices.map(c => `<option>${c.value}</option>`).join('');
+    }
+  } catch {}
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   SETTINGS HELPERS
+══════════════════════════════════════════════════════════════════ */
+function getSettings() {
+  return {
+    region:        document.getElementById('cfg-region').value,
+    universe:      document.getElementById('cfg-universe').value,
+    neutralization:document.getElementById('cfg-neut').value,
+    delay:         parseInt(document.getElementById('cfg-delay').value),
+    decay:         parseInt(document.getElementById('cfg-decay').value),
+    truncation:    parseFloat(document.getElementById('cfg-trunc').value),
+    testPeriod:    document.getElementById('cfg-period').value,
+  };
+}
+
+function buildPayload(expr, overrides = {}) {
+  const s = getSettings();
+  return {
+    type: 'REGULAR',
+    settings: {
+      instrumentType: 'EQUITY',
+      region:         overrides.region  || s.region,
+      universe:       overrides.universe|| s.universe,
+      delay:          overrides.delay   !== undefined ? overrides.delay : s.delay,
+      decay:          overrides.decay   !== undefined ? overrides.decay : s.decay,
+      neutralization: overrides.neutralization || s.neutralization,
+      truncation:     overrides.truncation || s.truncation,
+      pasteurization: 'ON',
+      testPeriod:     s.testPeriod,
+      unitHandling:   'VERIFY',
+      nanHandling:    'OFF',
+      maxTrade:       'ON',
+      language:       'FASTEXPR',
+      visualization:  false,
+    },
+    regular: expr,
+  };
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   ANTHROPIC API — AI idea generation
+══════════════════════════════════════════════════════════════════ */
+
+async function callClaude(system, userMsg) {
+  const r = await fetch(ANTHROPIC, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1500,
+      system,
+      messages: [{ role: 'user', content: userMsg }],
+    }),
+  });
+  const data = await r.json();
+  return data.content?.[0]?.text || '';
+}
+
+const AI_SYSTEM = `You are an expert quantitative alpha researcher for WorldQuant BRAIN.
+You generate FASTEXPR alpha ideas, write submission descriptions, and diagnose simulation results.
+
+FASTEXPR rules:
+- Operators: rank(), group_rank(x,group), ts_mean(x,d), ts_std_dev(x,d), ts_rank(x,d), ts_zscore(x,d), ts_delta(x,d), ts_corr(x,y,d), ts_delay(x,d), ts_sum(x,d), ts_max(x,d), ts_min(x,d), log(x), abs(x), sign(x), power(x,e), pasteurize(x), normalize(x)
+- Groups: subindustry, industry, sector, market
+- Data fields: close, open, high, low, returns, volume, adv20, adv5, market_cap, enterprise_value, ebit, capex, sales, assets, liabilities, cash, dividends
+- Negate (-) for reversal/contrarian signals
+- Default settings: Region=USA, Universe=TOP3000, Delay=1, Neutralization=SUBINDUSTRY, Truncation=0.08
+
+Submission thresholds: Sharpe≥1.25, Fitness≥1.0, Turnover 1-70%, Drawdown>-20%
+
+Description format (always use exactly this):
+Idea: [core trading hypothesis]
+Rationale for data used: [why this data]
+Rationale for operators used: [why these operators]
+
+Respond ONLY with valid JSON. No markdown, no backticks, no explanation outside the JSON.`;
+
+/* ══════════════════════════════════════════════════════════════════
+   AI RESEARCH TAB
+══════════════════════════════════════════════════════════════════ */
+
+function quickPrompt(cat) {
+  document.getElementById('ai-prompt').value = `Generate a ${cat} alpha for USA TOP3000. Make it novel and explain the trading logic clearly.`;
+}
+
+async function generateAIAlpha() {
+  const prompt = document.getElementById('ai-prompt').value.trim();
+  if (!prompt) { toast('Enter a prompt first'); return; }
+
+  const histCtx = buildHistoryContext();
+  const out = document.getElementById('ai-output');
+
+  out.innerHTML = `<div class="ai-thinking"><div class="ai-dots"><span></span><span></span><span></span></div> AI is generating alpha ideas…</div>`;
+
+  const userMsg = `${prompt}
+
+${histCtx}
+
+Generate 3 distinct alpha ideas. Return JSON array:
+[
+  {
+    "expr": "fastexpr string",
+    "category": "Price Reversion|Price Momentum|Volume|Fundamental|Analyst|Sentiment|Price+Volume",
+    "idea": "1-2 sentence hypothesis",
+    "dataRationale": "why this data",
+    "opRationale": "why these operators",
+    "expectedSharpe": "1.2-1.8",
+    "expectedTurnover": "20-40%",
+    "warning": "any potential issue or empty string"
+  }
+]`;
+
+  try {
+    const txt = await callClaude(AI_SYSTEM, userMsg);
+    const clean = txt.replace(/```json|```/g,'').trim();
+    const ideas = JSON.parse(clean);
+    renderAIIdeas(ideas, out);
+  } catch (e) {
+    out.innerHTML = `<div class="card"><span style="color:var(--red)">AI error: ${e.message}. Check your Anthropic API key is configured.</span></div>`;
+  }
+}
+
+async function generateBatch() {
+  const prompt = document.getElementById('ai-prompt').value.trim() ||
+    'Generate 5 diverse alpha ideas across different categories for USA TOP3000';
+  const out = document.getElementById('ai-output');
+  out.innerHTML = `<div class="ai-thinking"><div class="ai-dots"><span></span><span></span><span></span></div> Generating batch of 5 ideas…</div>`;
+
+  const userMsg = `${prompt}\n\nGenerate exactly 5 diverse alpha ideas, one per category. Return JSON array of 5 objects with same schema as before (expr, category, idea, dataRationale, opRationale, expectedSharpe, expectedTurnover, warning).`;
+
+  try {
+    const txt = await callClaude(AI_SYSTEM, userMsg);
+    const clean = txt.replace(/```json|```/g,'').trim();
+    const ideas = JSON.parse(clean);
+    renderAIIdeas(ideas, out);
+  } catch (e) {
+    out.innerHTML = `<div class="card"><span style="color:var(--red)">AI error: ${e.message}</span></div>`;
+  }
+}
+
+async function generateFromHistory() {
+  const out = document.getElementById('ai-output');
+  if (!state.history.length) { toast('No simulation history yet — run some alphas first'); return; }
+
+  out.innerHTML = `<div class="ai-thinking"><div class="ai-dots"><span></span><span></span><span></span></div> Analysing your history and generating improvements…</div>`;
+
+  const best = [...state.history].sort((a,b)=>(b.sharpe||0)-(a.sharpe||0)).slice(0,3);
+  const worst = [...state.history].sort((a,b)=>(a.sharpe||0)-(b.sharpe||0)).slice(0,2);
+
+  const userMsg = `Based on my simulation history, generate improved alpha ideas.
+
+Best performing alphas:
+${best.map(a=>`- ${a.expr} → Sharpe: ${a.sharpe}, Fitness: ${a.fitness}, Turnover: ${a.turnover}%`).join('\n')}
+
+Worst performing alphas:
+${worst.map(a=>`- ${a.expr} → Sharpe: ${a.sharpe}, issues: ${a.issues||'low sharpe'}`).join('\n')}
+
+Generate 3 ideas that:
+1. Build on what worked well
+2. Avoid patterns that failed
+3. Try variations with different data or operators
+
+Return JSON array with same schema (expr, category, idea, dataRationale, opRationale, expectedSharpe, expectedTurnover, warning).`;
+
+  try {
+    const txt = await callClaude(AI_SYSTEM, userMsg);
+    const clean = txt.replace(/```json|```/g,'').trim();
+    const ideas = JSON.parse(clean);
+    renderAIIdeas(ideas, out);
+  } catch (e) {
+    out.innerHTML = `<div class="card"><span style="color:var(--red)">AI error: ${e.message}</span></div>`;
+  }
+}
+
+function renderAIIdeas(ideas, container) {
+  const catColor = {
+    'Price Reversion':'tag-c','Price Momentum':'tag-a','Fundamental':'tag-g',
+    'Volume':'tag-p','Sentiment':'tag-r','Analyst':'tag-a','Price+Volume':'tag-c',
+  };
+
+  container.innerHTML = ideas.map((idea, i) => `
+    <div class="ai-msg">
+      <div class="ai-msg-header">
+        ✦ ALPHA IDEA ${i+1}
+        <span class="tag ${catColor[idea.category]||'tag-c'}">${idea.category}</span>
+        ${idea.warning ? `<span class="tag tag-r" title="${idea.warning}">⚠ Warning</span>` : ''}
+      </div>
+      <div class="code-expr" onclick="useExpr(${i})" title="Click to use in Simulate tab">${idea.expr}</div>
+      <div style="margin:10px 0;font-size:11px;color:var(--txt2);line-height:1.8">
+        <div><span style="color:var(--cyan)">Idea:</span> ${idea.idea}</div>
+        <div><span style="color:var(--amber)">Data:</span> ${idea.dataRationale}</div>
+        <div style="color:var(--txt3)"><span style="color:var(--purple)">Operators:</span> ${idea.opRationale}</div>
+      </div>
+      <div style="display:flex;gap:12px;font-size:10px;color:var(--txt2);margin-bottom:12px">
+        <span>Expected Sharpe: <strong style="color:var(--cyan)">${idea.expectedSharpe}</strong></span>
+        <span>Turnover: <strong style="color:var(--amber)">${idea.expectedTurnover}</strong></span>
+      </div>
+      ${idea.warning ? `<div style="font-size:10px;color:var(--amber);margin-bottom:10px">⚠ ${idea.warning}</div>` : ''}
+      <div class="btn-row">
+        <button class="btn btn-cyan" onclick="sendToSimulate('${escJs(idea.expr)}', '${escJs(buildDesc(idea))}')">▶ Simulate This</button>
+        <button class="btn btn-ghost" onclick="copyText('${escJs(idea.expr)}')">Copy Expr</button>
+        <button class="btn btn-ghost" onclick="copyText('${escJs(buildDesc(idea))}')">Copy Description</button>
+      </div>
+    </div>
+  `).join('');
+
+  // Cache ideas for useExpr
+  window._lastIdeas = ideas;
+}
+
+function buildDesc(idea) {
+  return `Idea: ${idea.idea}\n\nRationale for data used: ${idea.dataRationale}\n\nRationale for operators used: ${idea.opRationale}`;
+}
+
+function useExpr(i) {
+  const idea = window._lastIdeas?.[i];
+  if (!idea) return;
+  sendToSimulate(idea.expr, buildDesc(idea));
+}
+
+function sendToSimulate(expr, desc) {
+  document.getElementById('sim-expr').value = expr;
+  document.getElementById('sim-desc').value = desc;
+  switchTab('simulate');
+  toast('Expression loaded — tap Run Simulation');
+}
+
+function buildHistoryContext() {
+  if (!state.history.length) return '';
+  const recent = state.history.slice(-5);
+  return `\nMy recent simulation history:\n${recent.map(a =>
+    `- ${a.expr} | Sharpe:${a.sharpe||'?'} Fitness:${a.fitness||'?'} Turnover:${a.turnover||'?'}%`
+  ).join('\n')}\n`;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   SIMULATE TAB
+══════════════════════════════════════════════════════════════════ */
+
+function viewPayload() {
+  const expr = document.getElementById('sim-expr').value.trim();
+  const block = document.getElementById('payload-block');
+  if (block.style.display === 'block') { block.style.display = 'none'; return; }
+  const p = buildPayload(expr);
+  document.getElementById('payload-json').textContent = JSON.stringify(p, null, 2);
+  block.style.display = 'block';
+}
+
+async function runSimulation() {
+  if (!state.authenticated) { showAuth(); toast('Connect to BRAIN first'); return; }
+  const expr = document.getElementById('sim-expr').value.trim();
+  if (!expr) { toast('Enter an alpha expression'); return; }
+
+  const btn = document.getElementById('sim-btn');
+  const progWrap = document.getElementById('sim-progress');
+  const progLbl  = document.getElementById('sim-prog-lbl');
+  const progBar  = document.getElementById('sim-prog-bar');
+
+  btn.disabled = true;
+  progWrap.style.display = 'block';
+  progBar.style.width = '5%';
+
+  // Build payload with override settings if any
+  const overrides = {
+    region:        document.getElementById('ov-region').value,
+    universe:      document.getElementById('ov-univ').value,
+    neutralization:document.getElementById('ov-neut').value,
+    delay:         parseInt(document.getElementById('ov-delay').value),
+    decay:         parseInt(document.getElementById('ov-decay').value),
+    truncation:    parseFloat(document.getElementById('ov-trunc').value),
+  };
+  const payload = buildPayload(expr, overrides);
+
+  try {
+    progLbl.textContent = 'Submitting to BRAIN…';
+    const r = await brainPost('/simulations', payload);
+
+    if (![200, 201].includes(r.status)) {
+      const body = await r.text();
+      toast(`Simulation rejected: ${r.status} — ${body.slice(0,100)}`);
+      btn.disabled = false; progWrap.style.display = 'none';
+      return;
+    }
+
+    const progressPath = r.headers.get('Location');
+    if (!progressPath) { toast('No progress URL returned'); btn.disabled = false; return; }
+
+    // Poll
+    const steps = [
+      'Loading universe data…','Computing cross-sectional signals…',
+      'Applying neutralization…','Applying truncation…',
+      'Calculating PnL…','Running metrics…','Finalizing…'
+    ];
+    let step = 0;
+    const progressUrl = BRAIN + progressPath;
+
+    const poll = async () => {
+      const pr = await brainGet(progressPath);
+      const pj = await pr.json();
+
+      const pct = (pj.progress || 0) * 100;
+      progBar.style.width = Math.max(pct, step * 12) + '%';
+      progLbl.textContent = steps[Math.min(step, steps.length-1)];
+      step++;
+
+      const retry = pr.headers.get('Retry-After');
+      if (retry && parseFloat(retry) > 0) {
+        setTimeout(poll, parseFloat(retry) * 1000);
+      } else {
+        // Done
+        progBar.style.width = '100%';
+        progLbl.textContent = 'Simulation complete ✓';
+        const alphaId = pj.alpha;
+        state.lastAlphaId = alphaId;
+
+        // Fetch full result
+        await fetchAndDisplayResult(alphaId, expr);
+        btn.disabled = false;
+        setTimeout(() => { progWrap.style.display = 'none'; }, 1500);
+        switchTab('results');
+        toast(`✓ Simulation complete — Alpha ${alphaId}`);
+      }
+    };
+    poll();
+
+  } catch (e) {
+    toast('Error: ' + e.message);
+    btn.disabled = false;
+    progWrap.style.display = 'none';
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   FETCH & DISPLAY RESULTS
+══════════════════════════════════════════════════════════════════ */
+
+async function fetchAndDisplayResult(alphaId, expr) {
+  const r = await brainGet(`/alphas/${alphaId}`);
+  if (r.status !== 200) { toast(`Could not fetch alpha ${alphaId}`); return; }
+  const result = await r.json();
+  state.lastResult = result;
+  state.lastAlphaId = alphaId;
+
+  displayResult(result, alphaId);
+
+  // Fetch checks
+  const ck = await brainGet(`/alphas/${alphaId}/check`);
+  if (ck.status === 200) {
+    const ckj = await ck.json();
+    displayChecks(ckj.is?.checks || []);
+  }
+
+  // Fetch PnL
+  const pnl = await fetchRecordsetData(alphaId, 'pnl');
+  if (pnl) displayPnL(pnl);
+
+  // Fetch yearly
+  const yr = await fetchRecordsetData(alphaId, 'yearly-stats');
+  if (yr) displayYearly(yr);
+
+  // Add to history
+  const is = result.is || {};
+  addToHistory({
+    alphaId,
+    expr: expr || result.regular?.code || '',
+    sharpe:   +(is.sharpe   || 0).toFixed(3),
+    fitness:  +(is.fitness  || 0).toFixed(3),
+    turnover: +(((is.turnover||0)*100)).toFixed(1),
+    returns:  +(((is.returns||0)*100)).toFixed(2),
+    drawdown: +(((is.drawdown||0)*100)).toFixed(2),
+    passed:   (is.sharpe||0) >= 1.25 && (is.fitness||0) >= 1.0,
+    ts:       Date.now(),
+    settings: result.settings,
+  });
+
+  // AI diagnosis
+  await aiDiagnoseResult(result, alphaId);
+}
+
+function displayResult(result, alphaId) {
+  const is = result.is || {};
+  const sharpe   = is.sharpe   || 0;
+  const fitness  = is.fitness  || 0;
+  const turnover = (is.turnover|| 0) * 100;
+  const returns  = (is.returns || 0) * 100;
+  const drawdown = (is.drawdown|| 0) * 100;
+  const margin   = (is.margin  || 0) * 100;
+
+  document.getElementById('results-empty').style.display = 'none';
+  document.getElementById('results-content').style.display = 'block';
+  document.getElementById('res-alpha-id').value = alphaId;
+
+  // Metrics
+  document.getElementById('res-metrics').innerHTML = [
+    { lbl:'Sharpe',   val:sharpe.toFixed(3),    cls: sharpe>=1.25?'g':sharpe>=1.0?'a':'r', hint:'≥ 1.25 to submit' },
+    { lbl:'Fitness',  val:fitness.toFixed(3),   cls: fitness>=1.0?'g':fitness>=.75?'a':'r',hint:'≥ 1.0 to submit' },
+    { lbl:'Turnover', val:turnover.toFixed(1)+'%', cls: turnover<=70&&turnover>=1?'g':turnover<=80?'a':'r', hint:'1–70%' },
+    { lbl:'Returns',  val:returns.toFixed(2)+'%', cls: returns>0?'g':'r', hint:'Annualised' },
+    { lbl:'Drawdown', val:drawdown.toFixed(1)+'%', cls: drawdown>=-10?'g':drawdown>=-20?'a':'r', hint:'> −20%' },
+    { lbl:'Margin',   val:margin.toFixed(2)+'%',  cls:'', hint:'' },
+  ].map(m => `
+    <div class="metric">
+      <div class="metric-lbl">${m.lbl}</div>
+      <div class="metric-val ${m.cls}">${m.val}</div>
+      <div class="metric-hint">${m.hint}</div>
+    </div>
+  `).join('');
+
+  // Score
+  const score = scoreAlpha(sharpe, fitness, turnover, drawdown);
+  const grade = score>=85?'A':score>=70?'B':score>=55?'C':score>=40?'D':'F';
+  const verdict = score>=70?'SUBMIT':score>=50?'ITERATE':'REDESIGN';
+  const vcolor  = verdict==='SUBMIT'?'var(--green)':verdict==='ITERATE'?'var(--amber)':'var(--red)';
+  const scolor  = score>=70?'var(--green)':score>=50?'var(--amber)':'var(--red)';
+
+  document.getElementById('res-score-card').innerHTML = `
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+      <div style="font-family:var(--sans);font-size:40px;font-weight:800;color:${scolor}">${grade}</div>
+      <div>
+        <div style="font-size:10px;color:var(--txt2);margin-bottom:4px">QUALITY SCORE</div>
+        <div class="score-wrap" style="width:200px">
+          <div class="score-top"><span>${score}/100</span></div>
+          <div class="score-track"><div class="score-fill" style="width:${score}%;background:${scolor}"></div></div>
+        </div>
+      </div>
+      <div>
+        <span style="font-family:var(--sans);font-size:18px;font-weight:800;color:${vcolor};
+          background:${vcolor}22;border:1px solid ${vcolor}44;padding:6px 16px;border-radius:6px">
+          ${verdict}
+        </span>
+      </div>
+      <div style="font-size:11px;color:var(--txt2);max-width:250px">
+        ${verdict==='SUBMIT'?'Alpha passes thresholds — ready for BRAIN submission.':
+          verdict==='ITERATE'?'Promising signal. Tune decay, neutralization, or lookback.':
+          'Core signal too weak. Consider different data or operators.'}
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--txt3);margin-top:10px">Alpha ID: <span style="color:var(--cyan)">${alphaId}</span></div>
+  `;
+
+  // Update sidebar stats
+  state.sessionTotal++;
+  if (sharpe >= 1.25 && fitness >= 1.0) state.sessionPassed++;
+  if (sharpe > state.sessionBestSharpe) state.sessionBestSharpe = sharpe;
+  document.getElementById('sb-total').textContent  = state.sessionTotal;
+  document.getElementById('sb-passed').textContent = state.sessionPassed;
+  document.getElementById('sb-best').textContent   = state.sessionBestSharpe.toFixed(3);
+}
+
+function scoreAlpha(sharpe, fitness, turnover, drawdown) {
+  let s = 0;
+  if      (sharpe >= 2.0)  s += 35;
+  else if (sharpe >= 1.5)  s += 28;
+  else if (sharpe >= 1.25) s += 20;
+  else if (sharpe >= 1.0)  s += 10;
+  if      (fitness >= 1.5) s += 25;
+  else if (fitness >= 1.0) s += 18;
+  else if (fitness >= .75) s += 10;
+  if (turnover >= 1 && turnover <= 50)  s += 20;
+  else if (turnover <= 70)              s += 12;
+  if      (drawdown >= -10) s += 10;
+  else if (drawdown >= -20) s += 6;
+  return s;
+}
+
+function displayChecks(checks) {
+  if (!checks.length) return;
+  const tbody = document.querySelector('#res-checks-table tbody');
+  tbody.innerHTML = checks.map(c => {
+    const cls = c.result==='PASS'?'pass':c.result==='FAIL'?'fail':'warn';
+    return `<tr>
+      <td>${c.name||c.test||''}</td>
+      <td>${c.value !== undefined ? c.value : '—'}</td>
+      <td>${c.limit !== undefined ? c.limit : '—'}</td>
+      <td class="${cls}">${c.result}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('res-checks-wrap').style.display = 'block';
+}
+
+async function fetchRecordsetData(alphaId, name) {
+  try {
+    let r;
+    for (let attempt = 0; attempt < 5; attempt++) {
+      r = await brainGet(`/alphas/${alphaId}/recordsets/${name}`);
+      const retry = r.headers.get('Retry-After');
+      if (!retry || parseFloat(retry) === 0) break;
+      await sleep(parseFloat(retry) * 1000);
+    }
+    const data = await r.json();
+    if (!data.records?.length) return null;
+    const cols = data.schema.properties.map(p => p.name);
+    return { cols, rows: data.records };
+  } catch { return null; }
+}
+
+function displayPnL(data) {
+  const colIdx = data.cols.indexOf('pnl') !== -1 ? data.cols.indexOf('pnl') : 1;
+  const vals = data.rows.map(r => r[colIdx]);
+  const final = vals[vals.length - 1];
+  const positive = final > 0;
+  const color = positive ? '#00e676' : '#ff1744';
+
+  const min = Math.min(...vals), max = Math.max(...vals);
+  const W = 600, H = 160, P = 10;
+  const xs = i => P + (i / (vals.length-1)) * (W - 2*P);
+  const ys = v => H - P - ((v - min) / (max - min || 1)) * (H - 2*P);
+  const pts  = vals.map((v,i) => `${xs(i)},${ys(v)}`).join(' ');
+  const fill = `${xs(0)},${H} ` + pts + ` ${xs(vals.length-1)},${H}`;
+
+  const zeroY = ys(0);
+  const svg = document.getElementById('res-pnl-svg');
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="pg" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="${color}" stop-opacity="0.2"/>
+        <stop offset="100%" stop-color="${color}" stop-opacity="0.02"/>
+      </linearGradient>
+    </defs>
+    <line x1="${P}" y1="${zeroY}" x2="${W-P}" y2="${zeroY}" stroke="#1c2b3a" stroke-dasharray="4,4" stroke-width="0.8"/>
+    <polygon points="${fill}" fill="url(#pg)"/>
+    <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.8"/>
+    <text x="${W-P}" y="${P+8}" text-anchor="end" fill="${color}" font-size="10" font-family="JetBrains Mono">
+      ${positive?'▲ +':'▼ '}${((final)*1).toFixed(4)}
+    </text>
+  `;
+  document.getElementById('res-pnl-wrap').style.display = 'block';
+}
+
+function displayYearly(data) {
+  const tbody = document.querySelector('#res-yearly-table tbody');
+  const c = data.cols;
+  tbody.innerHTML = data.rows.map(r => {
+    const get = name => { const i = c.indexOf(name); return i>=0 ? r[i] : '—'; };
+    const sh = parseFloat(get('sharpe')) || 0;
+    const shCls = sh>=1.25?'pass':sh>=1.0?'warn':'fail';
+    return `<tr>
+      <td>${get('year')}</td>
+      <td class="${shCls}">${sh.toFixed(3)}</td>
+      <td>${(parseFloat(get('fitness'))||0).toFixed(3)}</td>
+      <td>${((parseFloat(get('turnover'))||0)*100).toFixed(1)}%</td>
+      <td>${((parseFloat(get('returns'))||0)*100).toFixed(2)}%</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('res-yearly-wrap').style.display = 'block';
+}
+
+async function aiDiagnoseResult(result, alphaId) {
+  const is = result.is || {};
+  const el = document.getElementById('res-diagnosis');
+  el.innerHTML = `<div class="ai-thinking"><div class="ai-dots"><span></span><span></span><span></span></div> AI is diagnosing this result…</div>`;
+  el.style.display = 'block';
+
+  const msg = `Diagnose this BRAIN simulation result and suggest specific improvements:
+
+Alpha expression: ${result.regular?.code || 'unknown'}
+Sharpe: ${is.sharpe?.toFixed(3)}
+Fitness: ${is.fitness?.toFixed(3)}
+Turnover: ${((is.turnover||0)*100).toFixed(1)}%
+Returns: ${((is.returns||0)*100).toFixed(2)}%
+Drawdown: ${((is.drawdown||0)*100).toFixed(2)}%
+Settings: Region=${result.settings?.region}, Neutralization=${result.settings?.neutralization}, Decay=${result.settings?.decay}
+
+Return JSON:
+{
+  "verdict": "SUBMIT|ITERATE|REDESIGN",
+  "diagnosis": "2-3 sentence analysis of what the numbers mean",
+  "topIssue": "the single biggest problem if any",
+  "fix1": "specific actionable fix #1",
+  "fix2": "specific actionable fix #2",
+  "improvedExpr": "a suggested improved expression or empty string if it's good"
+}`;
+
+  try {
+    const txt = await callClaude(AI_SYSTEM, msg);
+    const clean = txt.replace(/```json|```/g,'').trim();
+    const d = JSON.parse(clean);
+    const vcolor = d.verdict==='SUBMIT'?'var(--green)':d.verdict==='ITERATE'?'var(--amber)':'var(--red)';
+    el.innerHTML = `
+      <div class="ai-msg">
+        <div class="ai-msg-header">✦ AI DIAGNOSIS</div>
+        <div style="font-size:12px;color:var(--txt2);margin-bottom:10px">${d.diagnosis}</div>
+        ${d.topIssue ? `<div style="font-size:11px;color:var(--amber);margin-bottom:8px">⚠ Main issue: ${d.topIssue}</div>` : ''}
+        <div style="font-size:11px;color:var(--txt2);margin-bottom:4px">▸ ${d.fix1}</div>
+        <div style="font-size:11px;color:var(--txt2);margin-bottom:10px">▸ ${d.fix2}</div>
+        ${d.improvedExpr ? `
+          <div class="lbl" style="margin-bottom:4px">Suggested improvement</div>
+          <div class="code-expr" onclick="sendToSimulate('${escJs(d.improvedExpr)}', '')">${d.improvedExpr}</div>
+          <button class="btn btn-cyan" style="margin-top:8px" onclick="sendToSimulate('${escJs(d.improvedExpr)}', '')">▶ Simulate Improvement</button>
+        ` : ''}
+      </div>`;
+  } catch {
+    el.innerHTML = '';
+  }
+}
+
+async function loadAlphaById() {
+  const id = document.getElementById('res-alpha-id').value.trim();
+  if (!id) return;
+  if (!state.authenticated) { showAuth(); return; }
+  toast('Loading alpha…');
+  await fetchAndDisplayResult(id, '');
+}
+
+async function fetchSelfCorr() {
+  if (!state.lastAlphaId) { toast('No alpha loaded'); return; }
+  const r = await brainGet(`/alphas/${state.lastAlphaId}/correlations/self`);
+  if (r.status !== 200) { toast('No self-correlation data'); return; }
+  const d = await r.json();
+  if (!d.records?.length) { toast('No self-correlation (no overlapping alphas)'); return; }
+  const cols = d.schema.properties.map(p=>p.name);
+  renderCorrTable('Self-Correlation', cols, d.records.slice(0,10));
+}
+
+async function fetchProdCorr() {
+  if (!state.lastAlphaId) { toast('No alpha loaded'); return; }
+  const r = await brainGet(`/alphas/${state.lastAlphaId}/correlations/prod`);
+  if (r.status !== 200) { toast('No production correlation data'); return; }
+  const d = await r.json();
+  if (!d.records?.length) { toast('No production correlation data'); return; }
+  const cols = d.schema.properties.map(p=>p.name);
+  renderCorrTable('Prod-Correlation', cols, d.records.slice(0,10));
+}
+
+function renderCorrTable(title, cols, rows) {
+  const wrap = document.getElementById('res-corr-wrap');
+  wrap.innerHTML += `
+    <div style="margin-bottom:14px">
+      <div class="lbl" style="margin-bottom:6px">${title}</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead>
+          <tbody>${rows.map(r=>`<tr>${r.map(v=>`<td>${typeof v==='number'?v.toFixed(3):v}</td>`).join('')}</tr>`).join('')}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+async function fetchRecordSet() {
+  if (!state.lastAlphaId) { toast('No alpha loaded'); return; }
+  const sets = ['daily-pnl','turnover','coverage','pnl-by-sector','sharpe-by-industry','pnl-by-capitalization','average-size-by-sector'];
+  const name = prompt('Record set name:\n' + sets.join('\n'), 'daily-pnl');
+  if (!name) return;
+  const data = await fetchRecordsetData(state.lastAlphaId, name);
+  if (!data) { toast('Empty or unavailable'); return; }
+  renderCorrTable(name, data.cols, data.rows.slice(0,20));
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   HISTORY TAB
+══════════════════════════════════════════════════════════════════ */
+
+function addToHistory(item) {
+  state.history.unshift(item);
+  if (state.history.length > 100) state.history.pop();
+  localStorage.setItem('wqlab_history', JSON.stringify(state.history));
+  renderHistory();
+}
+
+function renderHistory() {
+  const list = document.getElementById('hist-list');
+  const empty = document.getElementById('hist-empty');
+
+  if (!state.history.length) {
+    empty.style.display = 'block'; list.innerHTML = ''; return;
+  }
+  empty.style.display = 'none';
+  list.innerHTML = state.history.map((a, i) => {
+    const cls = a.passed ? 'good' : a.sharpe >= 1.0 ? 'warn-item' : 'bad';
+    const ts = new Date(a.ts).toLocaleDateString();
+    return `
+      <div class="hist-item ${cls}" onclick="loadHistItem(${i})">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <span class="tag ${a.passed?'tag-g':a.sharpe>=1?'tag-a':'tag-r'}">${a.passed?'PASS':a.sharpe>=1?'CLOSE':'FAIL'}</span>
+          <span style="font-size:10px;color:var(--txt3)">${ts}</span>
+        </div>
+        <div style="font-size:11px;color:var(--cyan);margin-bottom:4px;word-break:break-all">${a.expr}</div>
+        <div style="font-size:11px;color:var(--txt2);display:flex;gap:14px;flex-wrap:wrap">
+          <span>Sharpe: <strong>${a.sharpe}</strong></span>
+          <span>Fitness: <strong>${a.fitness}</strong></span>
+          <span>Turnover: <strong>${a.turnover}%</strong></span>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function loadHistItem(i) {
+  const a = state.history[i];
+  sendToSimulate(a.expr, '');
+}
+
+async function aiAnalyzeHistory() {
+  if (!state.history.length) { toast('No history yet'); return; }
+  const out = document.getElementById('hist-ai-output');
+  out.innerHTML = `<div class="ai-thinking"><div class="ai-dots"><span></span><span></span><span></span></div> AI is analysing your alpha history…</div>`;
+
+  const summary = state.history.slice(0,20).map(a =>
+    `${a.expr} | Sharpe:${a.sharpe} Fitness:${a.fitness} Turnover:${a.turnover}% Returns:${a.returns}% Passed:${a.passed}`
+  ).join('\n');
+
+  const msg = `Analyse this alpha research history and give strategic recommendations:
+
+${summary}
+
+Return JSON:
+{
+  "patterns": "what patterns do you see in what works vs fails",
+  "strongSuit": "what this researcher does well",
+  "weakness": "main weakness to address",
+  "nextSteps": ["step 1", "step 2", "step 3"],
+  "bestExpr": "the best expression in the history",
+  "suggestedVariation": "a suggested variation of the best expression"
+}`;
+
+  try {
+    const txt = await callClaude(AI_SYSTEM, msg);
+    const clean = txt.replace(/```json|```/g,'').trim();
+    const d = JSON.parse(clean);
+    out.innerHTML = `
+      <div class="ai-msg">
+        <div class="ai-msg-header">✦ AI HISTORY ANALYSIS</div>
+        <div style="font-size:12px;color:var(--txt2);margin-bottom:10px">${d.patterns}</div>
+        <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:12px">
+          <div><div class="lbl">Strong suit</div><div style="font-size:11px;color:var(--green)">${d.strongSuit}</div></div>
+          <div><div class="lbl">Main weakness</div><div style="font-size:11px;color:var(--red)">${d.weakness}</div></div>
+        </div>
+        <div class="lbl" style="margin-bottom:6px">Recommended next steps</div>
+        ${d.nextSteps.map(s=>`<div style="font-size:11px;color:var(--txt2);margin-bottom:4px">▸ ${s}</div>`).join('')}
+        ${d.suggestedVariation ? `
+          <div class="lbl" style="margin-top:10px;margin-bottom:4px">Try this variation of your best alpha</div>
+          <div class="code-expr">${d.suggestedVariation}</div>
+          <button class="btn btn-cyan" style="margin-top:8px" onclick="sendToSimulate('${escJs(d.suggestedVariation)}','')">▶ Simulate</button>
+        ` : ''}
+      </div>`;
+  } catch (e) {
+    out.innerHTML = `<div class="card"><span style="color:var(--red)">AI error: ${e.message}</span></div>`;
+  }
+}
+
+function exportHistory() {
+  const blob = new Blob([JSON.stringify(state.history, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'wqlab_history.json';
+  a.click();
+}
+
+function clearHistory() {
+  if (!confirm('Clear all history?')) return;
+  state.history = [];
+  localStorage.removeItem('wqlab_history');
+  renderHistory();
+  toast('History cleared');
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   LEARN TAB
+══════════════════════════════════════════════════════════════════ */
+
+const KB = [
+  {
+    title: 'How BRAIN Backtesting Works',
+    body: `Each day, your FASTEXPR alpha is evaluated across all instruments in the universe.
+Output values become position weights: positive = long, negative = short.
+
+The engine applies in order:
+① <code>Neutralization</code> (SUBINDUSTRY etc.) — removes group-level bias
+② <code>Truncation</code> (default 0.08) — caps each weight at 8%
+③ <code>Pasteurization</code> — replaces extreme/inf values with NaN
+④ <code>Delay=1</code> — trade at next day's open, no look-ahead bias
+
+Key metrics:
+• <code>Sharpe</code> = Ann. Returns / Ann. Volatility — target ≥ 1.25
+• <code>Fitness</code> = Sharpe × √(coverage) × stability — target ≥ 1.0
+• <code>Turnover</code> = daily rebalancing fraction — target 1–70%`
+  },
+  {
+    title: 'Submission Checklist',
+    body: `Before submitting to any competition:
+✓ Sharpe ≥ 1.25 (hard reject below this)
+✓ Fitness ≥ 1.0
+✓ Turnover 1–70%
+✓ Max Drawdown > −20%
+✓ Long count ≥ 100
+✓ Self-correlation < 0.7 with your own alphas
+✓ Production correlation < 0.7 with live alphas
+✓ Description: all 3 fields filled (Idea / Data rationale / Operator rationale)
+✓ No comments in the expression
+✓ Settings: TOP3000, Delay=1, SUBINDUSTRY, Truncation=0.08`
+  },
+  {
+    title: 'Common Mistakes & Fixes',
+    body: `<strong>Turnover > 70%</strong>
+→ Add <code>decay=5</code> to smooth daily changes
+→ Wrap signal in <code>ts_mean(signal, N)</code>
+
+<strong>Sharpe < 1.0</strong>
+→ Try negating the signal — you may be on the wrong side
+→ Change neutralization from MARKET to SUBINDUSTRY
+→ Use <code>group_rank</code> instead of <code>rank</code>
+
+<strong>Self-corr too high</strong>
+→ Your alpha is too similar to one you already submitted
+→ Change data field or time window
+
+<strong>NaN / empty output</strong>
+→ Use <code>pasteurize(x)</code> to clean extreme values
+→ Check if data field is valid for your region`
+  },
+  {
+    title: 'Description Format (Required)',
+    body: `Every alpha needs a 3-part description — exactly this format:
+
+<code>Idea: [what market inefficiency are you exploiting? 1-3 sentences]</code>
+
+<code>Rationale for data used: [why this specific data? economic/behavioral logic. 1-3 sentences]</code>
+
+<code>Rationale for operators used: [why these operators? how do they transform data into a signal? 1-3 sentences]</code>
+
+Rules:
+• Plain text only — no bullet points, no markdown
+• Be specific, not vague ("this data is useful" is not accepted)
+• 2-4 sentences per field maximum`
+  },
+  {
+    title: 'Key Operators Reference',
+    body: `<strong>Time-Series:</strong>
+<code>ts_mean(x, d)</code> — rolling mean over d days
+<code>ts_std_dev(x, d)</code> — rolling std dev
+<code>ts_rank(x, d)</code> — rank in past d-day window
+<code>ts_zscore(x, d)</code> — z-score: (x - mean) / std
+<code>ts_delta(x, d)</code> — x minus x[d days ago]
+<code>ts_corr(x, y, d)</code> — rolling correlation
+
+<strong>Cross-Sectional:</strong>
+<code>rank(x)</code> — ranks all stocks 0 to 1
+<code>group_rank(x, g)</code> — ranks within group g
+<code>group_zscore(x, g)</code> — z-score within group
+
+<strong>Utility:</strong>
+<code>pasteurize(x)</code> — removes extreme values
+<code>log(x)</code> — natural log
+<code>abs(x)</code> — absolute value`
+  },
+  {
+    title: 'Competition Strategy (All Regions / D1 Power Pool)',
+    body: `1. <strong>Diversify regions</strong> — submit USA, EUR, ASI, CHN. Competitions reward breadth.
+2. <strong>Vary data categories</strong> — don't submit 10 reversion alphas. Add fundamental, analyst, volume.
+3. <strong>Watch self-correlation</strong> — similar alphas cluster and reduce your effective alpha count.
+4. <strong>Fitness > Sharpe</strong> — fitness rewards coverage; very concentrated signals are penalised.
+5. <strong>Iterate from results</strong> — use the AI diagnosis tab to systematically improve low performers.
+6. <strong>Keep notes</strong> — BRAIN reviewers read descriptions. Be specific and honest about the mechanism.`
+  },
+];
+
+function buildKB() {
+  document.getElementById('kb-content').innerHTML = KB.map((k, i) => `
+    <div class="kb-block">
+      <div class="kb-header" onclick="toggleKB(${i})">
+        <span>${k.title}</span>
+        <span id="kb-arrow-${i}">+</span>
+      </div>
+      <div class="kb-body" id="kb-body-${i}">${k.body}</div>
+    </div>
+  `).join('');
+}
+
+function toggleKB(i) {
+  const body  = document.getElementById(`kb-body-${i}`);
+  const arrow = document.getElementById(`kb-arrow-${i}`);
+  const open  = body.classList.toggle('open');
+  arrow.textContent = open ? '−' : '+';
+}
+
+async function askLearnAI() {
+  const q = document.getElementById('learn-q').value.trim();
+  if (!q) return;
+  const out = document.getElementById('learn-ai-out');
+  out.innerHTML = `<div class="ai-thinking"><div class="ai-dots"><span></span><span></span><span></span></div> Thinking…</div>`;
+
+  const msg = `Answer this WorldQuant BRAIN question concisely and practically: ${q}
+
+Return JSON: { "answer": "clear practical answer", "example": "a concrete FASTEXPR example if relevant, or empty string" }`;
+
+  try {
+    const txt = await callClaude(AI_SYSTEM, msg);
+    const clean = txt.replace(/```json|```/g,'').trim();
+    const d = JSON.parse(clean);
+    out.innerHTML = `
+      <div class="ai-msg">
+        <div class="ai-msg-header">✦ ANSWER</div>
+        <div style="font-size:12px;color:var(--txt2);line-height:1.8;margin-bottom:10px">${d.answer}</div>
+        ${d.example ? `
+          <div class="lbl" style="margin-bottom:4px">Example</div>
+          <div class="code-expr">${d.example}</div>
+          <button class="btn btn-ghost" style="margin-top:8px;font-size:11px" onclick="sendToSimulate('${escJs(d.example)}','')">Try it →</button>
+        ` : ''}
+      </div>`;
+  } catch (e) {
+    out.innerHTML = `<div style="color:var(--red);font-size:12px">Error: ${e.message}</div>`;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   TAB SWITCHING
+══════════════════════════════════════════════════════════════════ */
+
+function switchTab(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('on'));
+  document.getElementById('tab-' + id).classList.add('on');
+  const map = {ai:0, simulate:1, results:2, history:3, learn:4};
+  document.querySelectorAll('.nav-btn')[map[id]]?.classList.add('on');
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   UTILS
+══════════════════════════════════════════════════════════════════ */
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function copyText(txt) {
+  navigator.clipboard.writeText(txt).then(() => toast('✓ Copied'));
+}
+
+function escJs(s) {
+  return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'\\"');
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+/* ══════════════════════════════════════════════════════════════════
+   INIT
+══════════════════════════════════════════════════════════════════ */
+
+document.addEventListener('DOMContentLoaded', () => {
+  buildKB();
+  renderHistory();
+  // Sync override selects with sidebar defaults
+  document.getElementById('cfg-region').addEventListener('change', () => {
+    document.getElementById('ov-region').value = document.getElementById('cfg-region').value;
+    if (state.liveSettings) parseAndPopulateSettings(state.liveSettings);
+  });
+});
+</script>
+</body>
+</html>
